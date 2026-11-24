@@ -16,3 +16,9 @@ The meeting that should have been an email finally becomes one. It emails itself
 - Character count: 174 (limit 200; target band 170–200).
 - Title: "The Meeting That Emailed Itself".
 - Iterations: v1–v8 in VERSIONS.md; shipped v8.
+
+## Revision (2026-11-24)
+Added validate_entry() gate to main.py: the entry must be 1-200 chars with no leading/trailing whitespace and no double spaces, else SystemExit with a clear message. The entry line itself is untouched (still 174 chars, byte-identical output); the write order (/output first, repo-root best-effort) is unchanged.
+
+## Revision 2 (2026-11-24)
+Two hardening edits to main.py, entry line untouched (still 174 chars, byte-identical output). First, validate_entry() gained a single-line check (rejects any `\n` or `\r` inside the entry) and every error message now names the exact rule violated (length 1–200, single-line, no leading/trailing whitespace, no double space), so a gate failure says precisely which rule broke. Second, write_entry() is now atomic: it writes the full content to `<path>.tmp` in the same directory and then `os.replace()`s it into place, so a crash mid-write can never leave a half-written entry.txt — the file is either the old complete version or the new complete one. The deterministic write order (/output first, repo-root best-effort with try/except OSError) and MAKEFUN_OUTPUT_DIR handling are unchanged.
